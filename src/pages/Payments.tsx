@@ -6,7 +6,6 @@ import {
 } from "recharts";
 import { DataTable, type ColumnDef } from "../components/DataTable";
 import { PageHeader } from "../components/PageHeader";
-import { StatCard }   from "../components/StatCard";
 import { useApi }     from "../hooks/useApi";
 import { fetchPayments, fetchRevenueByMonth, fetchPaymentTypeBreakdown, type Payment } from "../api/index";
 import { cardShell, cn, inputShell } from "../lib/cn";
@@ -71,18 +70,8 @@ export function Payments() {
   }), [rows, filterType, filterStatus, filterMethod]);
 
   // Case-insensitive status matching — DB rows might be "completed",
-  // "COMPLETED", "Complete", etc.
+  // "COMPLETED", "Complete", etc. Used by the chart aggregations below.
   const isStatus = (p: Payment, wanted: string) => norm(p.status) === wanted;
-
-  const metrics = useMemo(() => {
-    const completed = filtered.filter((p) => isStatus(p, "completed"));
-    return {
-      revenue: completed.reduce((a, p) => a + Number(p.amount ?? 0), 0),
-      success: completed.length,
-      failed:  filtered.filter((p) => isStatus(p, "failed")).length,
-      pending: filtered.filter((p) => isStatus(p, "pending")).length,
-    };
-  }, [filtered]);
 
   // Fallback: if the `/payments/type-breakdown` endpoint returns nothing (or
   // the filter is active), compute from the current filtered rows so the
@@ -198,14 +187,6 @@ export function Payments() {
   return (
     <div>
       <PageHeader subtitle="Transactions from MySQL payment table — joined with user, session, and subscription." />
-
-      {/* KPI Cards */}
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total Revenue"       value={`$${metrics.revenue.toFixed(2)}`} hint="Completed payments" />
-        <StatCard label="Successful Payments" value={String(metrics.success)}          hint="Completed transactions" />
-        <StatCard label="Failed Payments"     value={String(metrics.failed)}           hint="Declined or error" />
-        <StatCard label="Pending Payments"    value={String(metrics.pending)}          hint="Awaiting capture" />
-      </div>
 
       {/* Filters */}
       <div className="mb-4 flex flex-wrap items-end gap-4">
