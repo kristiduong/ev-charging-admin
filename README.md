@@ -1,16 +1,26 @@
 # EV Charging Station Admin
 
-A relational database system and full-stack admin dashboard for managing an Electric Vehicle (EV) charging station network.
+A relational database system and full-stack admin dashboard for managing an Electric Vehicle (EV) charging station network. Designed as a coursework project and deployed end-to-end from schema to UI.
 
-The project designs a structured, scalable database that simulates a real-world EV charging platform — customers charge their vehicles and pay based on usage or membership plans, while operators monitor infrastructure, sessions, payments, and maintenance in one place.
+> 🔗 **Live demo:** `https://<your-app>.vercel.app` &nbsp;·&nbsp; **Repo:** [GitHub](https://github.com/<your-username>/ev-charging-admin)
+
+The platform simulates a real-world EV charging service: customers charge their vehicles and pay by usage or membership, while operators monitor stations, chargers, sessions, payments, and maintenance — all from a single dashboard backed by a normalized MySQL database.
+
+## Highlights
+
+- **Normalized MySQL schema in 3NF** with surrogate keys and non-identifying relationships — scalable, free of update anomalies.
+- **11 triggers** encode the business logic directly in the database, covering the full lifecycle of subscriptions, sessions, payments, and maintenance.
+- **16 analytical SQL queries** demonstrating techniques from simple lookups through multi-join aggregates with window functions and CTEs.
+- **Seeded with 2,800+ rows** of realistic dummy data across 9 entities.
+- **Full-stack deployment** on Vercel — React/Vite frontend + Express API (as a serverless function) + managed cloud MySQL.
 
 ## Project goals
 
-- **Design a practical relational schema** for a real-world EV charging network.
-- **Encode business rules directly in the database**, using a schema in Third Normal Form (3NF) with surrogate primary keys and non-identifying relationships to keep the model scalable and free of update anomalies.
-- **Identify entities, keys, and relationships** with explicit cardinality and optionality.
-- **Translate business rules into a Crow's Foot ERD** and implement the schema in MySQL.
-- **Demonstrate SQL queries of varying complexity** to extract meaningful insights about stations, utilization, revenue, and maintenance.
+- Design a practical relational schema for a real-world EV charging network.
+- Encode business rules directly in the database using 3NF, surrogate primary keys, and non-identifying relationships to keep the model scalable and free of update anomalies.
+- Identify entities, keys, and relationships with explicit cardinality and optionality.
+- Translate business rules into a Crow's Foot ERD and implement the schema in MySQL.
+- Demonstrate SQL queries of varying complexity to extract meaningful operational insight about stations, utilization, revenue, and maintenance.
 
 ## Database design
 
@@ -20,8 +30,8 @@ Key design decisions:
 
 - **3NF** with surrogate integer primary keys on every entity.
 - **Non-identifying relationships** so child rows are independent of parent keys — easier to evolve the schema without cascading key changes.
-- **11 triggers** handle the full lifecycle of subscriptions, charging sessions, payments, and maintenance updates directly in the database, so application code doesn't have to duplicate business logic.
-- **16 SQL queries** of increasing complexity, from simple lookups to multi-join aggregate analytics with window functions and CTEs.
+- **11 triggers** handle subscription, session, payment, and maintenance lifecycles directly in the database, so application code doesn't have to duplicate business logic.
+- **16 SQL queries** organized by complexity, from simple lookups to multi-join aggregate analytics with window functions and CTEs.
 
 ### Seed data
 
@@ -35,13 +45,23 @@ Dummy data was generated with OpenClaw against the schema:
 | Maintenance logs  | 1,000  |
 | Companies         | 6      |
 
+## Features
+
+- **Dashboard** — KPIs, revenue-by-city, charger availability, and recent-session activity
+- **Stations** — searchable list with map view, per-station metadata and charger counts
+- **Chargers** — status, power rating, and maintenance history
+- **Users** — customer directory with plan-tier and subscription-status filters
+- **Sessions** — every charging session with start/end, energy delivered, cost
+- **Payments** — revenue, successful / failed / pending breakdowns, monthly trend chart
+- **Maintenance** — work-order log with issue-type analytics
+
 ## Tech stack
 
-- **Database** — MySQL 8, schema in 3NF, 11 triggers, 16 demo queries
-- **Backend** — Node.js + Express, `mysql2/promise` pool
-- **Frontend** — React 18, Vite, TypeScript, Tailwind CSS, Recharts, React Router, React-Leaflet
-- **Deployment** — Vercel (serverless function for the API + static SPA)
-- **Tooling** — Crow's Foot ERD modeling, OpenClaw (seed data), Cursor (initial frontend scaffolding), Claude Opus 4.7 (backend + Vercel wiring)
+- **Database** — MySQL 8 (managed on Aiven in production; local MySQL for development)
+- **Backend** — Node.js + Express, `mysql2/promise` connection pool, SSL for managed hosts
+- **Frontend** — React 18, TypeScript, Vite, Tailwind CSS, Recharts, React Router, React-Leaflet
+- **Deployment** — Vercel (Express served as a serverless function, React bundle served as a static SPA)
+- **Tooling** — Crow's Foot ERD modeling, OpenClaw (seed data), Cursor (initial frontend scaffolding), Claude (backend integration and deployment)
 
 ## Architecture
 
@@ -83,11 +103,11 @@ Health check: [http://localhost:4000/api/health](http://localhost:4000/api/healt
 
 ## Deploy to Vercel
 
-### 1. Get a cloud MySQL
+### 1. Provision a cloud MySQL
 
-Vercel doesn't host databases — pick any managed MySQL reachable over the public internet: [PlanetScale](https://planetscale.com), [Railway](https://railway.app), [Aiven](https://aiven.io), AWS RDS, Google Cloud SQL, or Azure Database. Import your schema + seed data and note the connection details.
+Vercel doesn't host databases — pick any managed MySQL reachable over the public internet: [Aiven](https://aiven.io), [Railway](https://railway.app), AWS RDS, Google Cloud SQL, or Azure Database. Import your schema + seed data and note the connection details.
 
-### 2. Push this repo to GitHub
+### 2. Push to GitHub
 
 ```bash
 git init
@@ -102,19 +122,20 @@ Secrets never ship to GitHub — both `.env` and `server/.env` are gitignored.
 
 ### 3. Import into Vercel
 
-On [vercel.com](https://vercel.com) → **Add New → Project** → import the repo. Vercel auto-detects Vite; `vercel.json` handles the build and routing. Under **Environment Variables**, add:
+On [vercel.com](https://vercel.com) → **Add New → Project** → import the repo. Vercel auto-detects Vite; `vercel.json` handles routing. Under **Environment Variables**, add:
 
-| Name      | Example                     | Notes                          |
-| --------- | --------------------------- | ------------------------------ |
-| `DB_HOST` | `aws.connect.psdb.cloud`    | from your MySQL provider       |
-| `DB_PORT` | `3306`                      | usually 3306                   |
-| `DB_USER` | `xxxxxxxxxxxx`              | MySQL username                 |
-| `DB_PASS` | `pscale_pw_xxxxx`           | MySQL password                 |
-| `DB_NAME` | `ev`                        | database name                  |
+| Name      | Example                                       | Notes                          |
+| --------- | --------------------------------------------- | ------------------------------ |
+| `DB_HOST` | `mysql-xxx.aivencloud.com`                    | from your MySQL provider       |
+| `DB_PORT` | `13674`                                       | the port your provider gave you |
+| `DB_USER` | `avnadmin`                                    | MySQL username                 |
+| `DB_PASS` | `••••••••`                                    | MySQL password                 |
+| `DB_NAME` | `defaultdb`                                   | database name                  |
+| `DB_SSL`  | `true`                                        | required for managed hosts     |
 
 Deploy. Vercel will run `npm install` and `npm run build`, package `api/index.js` as a serverless function handling every `/api/*` request, and serve `dist/` as a static SPA.
 
-After deploy, visit `https://<your-app>.vercel.app/api/health` — if it returns `{"status":"ok","db":"ev"}`, you're live.
+After deploy, visit `https://<your-app>.vercel.app/api/health` — if it returns `{"status":"ok","db":"..."}`, you're live.
 
 ## Project layout
 
@@ -124,11 +145,11 @@ After deploy, visit `https://<your-app>.vercel.app/api/health` — if it returns
 │   └── index.js          ← Vercel serverless entry (exports the Express app)
 ├── server/
 │   ├── app.js            ← Express app factory (shared local + Vercel)
-│   ├── db.js             ← MySQL pool
+│   ├── db.js             ← MySQL pool with optional SSL
 │   ├── index.js          ← local-dev entry (app.listen on 4000)
 │   └── routes/           ← dashboard, stations, chargers, users, sessions, payments, maintenance
 ├── src/                  ← React pages, components, API client
-├── vercel.json           ← Vercel routing + build config
+├── vercel.json           ← Vercel routing config (SPA + /api rewrites)
 ├── vite.config.ts        ← dev proxy /api → http://localhost:4000
 └── package.json          ← single set of deps for frontend + backend
 ```
@@ -136,9 +157,11 @@ After deploy, visit `https://<your-app>.vercel.app/api/health` — if it returns
 ## Troubleshooting
 
 - **`ER_ACCESS_DENIED_ERROR` / `ER_BAD_DB_ERROR`** — credentials wrong. Fix `server/.env` locally, or Vercel env vars in prod.
+- **`ECONNREFUSED 127.0.0.1:3306` in prod** — `DB_HOST` isn't set on Vercel; it's falling back to localhost.
+- **`ETIMEDOUT` in prod** — your cloud MySQL isn't reachable from Vercel. Allowlist `0.0.0.0/0` in the provider's network settings.
+- **`Table '…' doesn't exist`** — MySQL on Linux is case-sensitive. Rename uppercase tables to lowercase: `RENAME TABLE STATION TO station;` (repeat for each table).
 - **`Failed to fetch` in dev** — Express isn't running. Use `npm run dev:all`.
 - **UI loads, tables empty** — the `ev` database has no rows. Load your seed SQL.
-- **`/api/health` returns 500 on Vercel** — cloud MySQL isn't reachable, or env vars are missing. Check Function Logs in the Vercel dashboard.
 - **Sanity-check without the UI** — `curl https://<your-app>.vercel.app/api/health`.
 
 ## How the frontend finds the API
