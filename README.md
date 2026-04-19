@@ -2,7 +2,7 @@
 
 A relational database system and full-stack admin dashboard for managing an Electric Vehicle (EV) charging station network. Designed as a coursework project and deployed end-to-end from schema to UI.
 
-> 🔗 **Live demo:** `https://<your-app>.vercel.app` &nbsp;·&nbsp; **Repo:** [GitHub](https://github.com/<your-username>/ev-charging-admin)
+> 🔗 **Live demo:** https://ev-charging-management-systems-fina-tau.vercel.app/
 
 The platform simulates a real-world EV charging service: customers charge their vehicles and pay by usage or membership, while operators monitor stations, chargers, sessions, payments, and maintenance — all from a single dashboard backed by a normalized MySQL database.
 
@@ -32,10 +32,32 @@ Key design decisions:
 - **Non-identifying relationships** so child rows are independent of parent keys — easier to evolve the schema without cascading key changes.
 - **11 triggers** handle subscription, session, payment, and maintenance lifecycles directly in the database, so application code doesn't have to duplicate business logic.
 - **16 SQL queries** organized by complexity, from simple lookups to multi-join aggregate analytics with window functions and CTEs.
+  
+### Workflow_triggers
+Core Workflow: Automated Charging Lifecycle
+Our system utilizes nested triggers to automate the entire charging and payment process. Here is the standard workflow:
+1.	Session Start: When a new session is INSERTED with a Start_Time, a trigger automatically updates the Charger_Status to 'In Use'.
+2.	Session Completion: Once the End_Time is UPDATED, the system automatically:
+   • Calculates the Total_Cost based on energy consumed.
+   • Sets the Session_Status to 'Completed'.
+   • Releases the charger back to 'Available'.
+3.	Payment Generation: Upon completion, a trigger instantly creates a Pending Payment record in the PAYMENT table.
+4.	Wallet Settlement: When the user pays via their wallet:
+  • The Wallet_Balance is automatically deducted. （failed if not enough balance）
+   • The payment status updates to success', ensuring real-time financial consistency.
 
-### Seed data
+Additional Table Automations
+Beyond the charging lifecycle, triggers maintain integrity across all supporting modules, for example:
+	1.	Subscription Management:
+       • Auto-Renewal/Expiry: Triggers monitor and update membership statuses based on valid dates.
+       • Access Control: Ensures only users with Active subscriptions can access premium charging rates.
+	2.	Maintenance Operations:
+       • Fault Detection: When a Maintenance_Log reports a critical issue, a trigger automatically sets the corresponding charger to 'Out of Service' to prevent user safety issues.
+       • Post-Repair Recovery: Once a log is marked as 'resolved ', the charger is instantly released back to 'Available' status.
 
-Dummy data was generated with OpenClaw against the schema:
+### Dummy data
+
+All testing data was programmatically generated using OpenClaw to simulate a real-world EV charging network. By mapping the database schema to OpenClaw’s generation engine, we produced over thousands of records across entities. Our SQL Triggers acted as a vital validation layer, enforcing business logic and preventing inconsistent entries during the seeding process. This synergy between programmatic generation and server-side triggers ensures high referential integrity and realistic data distributions for all analytical queries.
 
 | Entity            | Rows   |
 | ----------------- | ------ |
