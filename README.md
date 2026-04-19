@@ -2,7 +2,7 @@
 
 A relational database system and full-stack admin dashboard for managing an Electric Vehicle (EV) charging station network. Designed as a coursework project and deployed end-to-end from schema to UI.
 
-> 🔗 **Live demo:** `[https://<your-app>.vercel.app](https://ev-charging-management-systems-fina-tau.vercel.app/)` &nbsp;·&nbsp; **Repo:** [GitHub](https://github.com/<your-username>/ev-charging-admin)
+> 🔗 **Live demo:** https://ev-charging-management-systems-fina-tau.vercel.app/
 
 The platform simulates a real-world EV charging service: customers charge their vehicles and pay by usage or membership, while operators monitor stations, chargers, sessions, payments, and maintenance — all from a single dashboard backed by a normalized MySQL database.
 
