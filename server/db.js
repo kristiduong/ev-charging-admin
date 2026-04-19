@@ -3,6 +3,17 @@ import mysql from "mysql2/promise";
 import dotenv from "dotenv";
 dotenv.config();
 
+// SSL is required by most managed cloud MySQL providers (Aiven, PlanetScale,
+// AWS RDS in strict mode, etc.) but should stay OFF for a local dev MySQL.
+// Opt in by setting DB_SSL=true in Vercel (or any production env).
+//
+// We use { rejectUnauthorized: false } to avoid having to bundle the provider's
+// CA certificate — the connection is still encrypted (TLS), we just don't
+// verify the server's cert chain. For a student/demo project this is fine; if
+// you want stricter verification, download the provider's ca.pem and load it
+// via `ca: fs.readFileSync('./ca.pem')` instead.
+const sslEnabled = process.env.DB_SSL === "true";
+
 export const dbConfig = {
   host:     process.env.DB_HOST     || "localhost",
   port:     Number(process.env.DB_PORT) || 3306,
@@ -12,6 +23,7 @@ export const dbConfig = {
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+  ...(sslEnabled && { ssl: { rejectUnauthorized: false } }),
 };
 
 export const pool = mysql.createPool(dbConfig);
